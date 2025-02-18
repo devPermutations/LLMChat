@@ -4,14 +4,15 @@ import MessageItem from './MessageItem';
 
 const MessageList = ({ messages }: MessageListProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  const prevMessageCountRef = useRef(messages.length);
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    // Only scroll on initial load or when a new message starts (not during streaming)
+    if (messages.length > prevMessageCountRef.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      prevMessageCountRef.current = messages.length;
+    }
+  }, [messages.length]);
 
   return (
     <div className="flex-1 overflow-y-auto">
@@ -20,6 +21,7 @@ const MessageList = ({ messages }: MessageListProps) => {
           <MessageItem key={message.id} message={message} />
         ))}
         <div ref={messagesEndRef} />
+        <div style={{ height: '140px' }} aria-hidden="true" />
       </div>
     </div>
   );
