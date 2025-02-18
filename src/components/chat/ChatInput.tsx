@@ -55,18 +55,51 @@ const ChatInput = ({ onSendMessage, onStop, isLoading = false }: ChatInputProps)
         />
         
         {/* Control bar under the textbox */}
-        <div className="flex justify-between items-center h-8 px-2 mt-2">
+        <div className="flex items-center h-8 px-2 mt-2">
           <ModelSelector
             selectedModel={selectedModel}
             onModelChange={setSelectedModel}
             models={models}
           />
           
+          <button
+            style={{
+              backgroundColor: 'black',
+              color: 'white',
+              fontSize: '10px',
+              padding: '2px 6px',
+              borderRadius: '9999px',
+              border: '1px solid white',
+              lineHeight: '1',
+              cursor: 'pointer',
+              minHeight: 'unset',
+              marginLeft: '8px',
+              transition: 'background-color 0.2s ease',
+            }}
+            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#333'}
+            onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'black'}
+          >
+            History
+          </button>
+          
           {isLoading && (
             <button
               onClick={onStop}
-              className="bg-black text-white text-[5px] px-1.5 rounded-full
-                       border-10 border-white leading-3 hover:bg-gray-900"
+              style={{
+                backgroundColor: 'black',
+                color: 'white',
+                fontSize: '10px',
+                padding: '2px 6px',
+                borderRadius: '9999px',
+                border: '1px solid white',
+                lineHeight: '1',
+                cursor: 'pointer',
+                minHeight: 'unset',
+                marginLeft: '8px',
+                transition: 'background-color 0.2s ease',
+              }}
+              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#333'}
+              onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'black'}
             >
               Stop
             </button>
