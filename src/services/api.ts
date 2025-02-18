@@ -1,98 +1,39 @@
-import axios from 'axios';
+/**
+ * API service for interacting with the Ollama API
+ * This module provides functionality for making requests to the Ollama language model service.
+ */
 
-const API_BASE_URL = 'http://localhost:11434';
+import { env } from '../config/env';
+import { createClient } from '../lib/ollama';
 
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  timeout: 60000, // 1 minute timeout
+// Create an Ollama client instance with environment-based configuration
+const ollamaClient = createClient({
+  baseUrl: env.VITE_OLLAMA_API_URL,
+  defaultModel: env.VITE_OLLAMA_DEFAULT_MODEL,
+  timeout: env.VITE_OLLAMA_TIMEOUT_MS,
 });
 
-export const generateResponse = async (
+/**
+ * Generates a response from the Ollama model using streaming
+ * @param prompt - The input text prompt to send to the model
+ * @param model - The name of the model to use (defaults to environment configuration)
+ * @param onPartialResponse - Optional callback function to handle streaming responses
+ * @param signal - Optional AbortSignal for cancelling the request
+ * @returns Promise<string> - The complete generated response
+ * @throws Error if the request fails or is aborted
+ */
+export const generateResponse = (
   prompt: string,
-  model: string = 'deepseek-r1:14b',
+  model?: string,
   onPartialResponse?: (partial: string) => void,
   signal?: AbortSignal
 ) => {
-  try {
-    console.log('Sending request to Ollama:', { model, prompt });
-    
-    const response = await fetch(`${API_BASE_URL}/api/generate`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model,
-        prompt,
-        stream: true,
-      }),
-      signal, // Add abort signal to fetch request
-    });
-
-    if (!response.ok || !response.body) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let fullResponse = '';
-
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-
-      // Decode the chunk and split by newlines
-      const chunk = decoder.decode(value, { stream: true });
-      const lines = chunk.split('\n');
-
-      for (const line of lines) {
-        if (line.trim()) {
-          try {
-            const data = JSON.parse(line);
-            if (data.response) {
-              fullResponse += data.response;
-              onPartialResponse?.(data.response);
-            }
-          } catch (e) {
-            console.error('Error parsing stream line:', e);
-          }
-        }
-      }
-    }
-
-    console.log('Full response received:', fullResponse);
-    return fullResponse;
-  } catch (error) {
-    if (error instanceof Error && error.name === 'AbortError') {
-      throw error; // Re-throw abort errors
-    }
-    
-    if (axios.isAxiosError(error)) {
-      console.error('Axios error:', {
-        message: error.message,
-        status: error.response?.status,
-        data: error.response?.data,
-      });
-      
-      if (error.response?.status === 404) {
-        throw new Error(`Model ${model} not found. Please ensure it's downloaded.`);
-      }
-      
-      if (error.code === 'ECONNABORTED') {
-        throw new Error('Request timed out. The model might be busy.');
-      }
-    }
-    
-    console.error('Error details:', error);
-    throw new Error(
-      error instanceof Error 
-        ? error.message 
-        : 'Failed to generate response. Please try again.'
-    );
-  }
+  return ollamaClient.generate({
+    prompt,
+    model,
+    onPartialResponse,
+    signal,
+  });
 };
 
-export default api; 
+export default ollamaClient; 
