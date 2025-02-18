@@ -1,45 +1,51 @@
 import { useState, KeyboardEvent } from 'react';
-import { PaperAirplaneIcon } from '@heroicons/react/24/solid';
 import { ChatInputProps } from '../../types/chat';
 
 const ChatInput = ({ onSendMessage, disabled = false }: ChatInputProps) => {
   const [message, setMessage] = useState('');
 
-  const handleSendMessage = () => {
-    if (message.trim() && !disabled) {
-      onSendMessage(message.trim());
-      setMessage('');
-    }
-  };
-
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSendMessage();
+      if (message.trim() && !disabled) {
+        onSendMessage(message.trim());
+        setMessage('');
+      }
     }
   };
 
   return (
-    <div className="border-t border-gray-700 bg-input-bg p-4">
-      <div className="flex items-end space-x-2">
-        <textarea
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Type a message..."
-          className="flex-1 resize-none rounded-lg bg-chat-bg p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          rows={1}
-          disabled={disabled}
-        />
-        <button
-          onClick={handleSendMessage}
-          disabled={!message.trim() || disabled}
-          className="rounded-lg bg-blue-500 p-2 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-          aria-label="Send message"
-        >
-          <PaperAirplaneIcon className="h-5 w-5" />
-        </button>
-      </div>
+    <div 
+      style={{
+        position: 'fixed',
+        bottom: '32px',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        width: '90ch',
+        maxWidth: '90vw',
+        zIndex: 1000
+      }}
+    >
+      <textarea
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        onKeyDown={handleKeyDown}
+        placeholder="Type a message... (Press Enter to send)"
+        style={{
+          width: '100%',
+          height: '60px',
+          padding: '16px',
+          backgroundColor: 'rgba(31, 41, 55, 0.95)',
+          color: 'white',
+          border: 'none',
+          borderRadius: '12px',
+          resize: 'none',
+          outline: 'none',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+          backdropFilter: 'blur(8px)'
+        }}
+        disabled={disabled}
+      />
     </div>
   );
 };

@@ -6,15 +6,20 @@ const ChatContainer = () => {
   const { messages, isLoading, error, sendMessage } = useChat();
 
   return (
-    <div className="flex h-screen flex-col bg-chat-bg">
-      <div className="flex-1 overflow-hidden">
-        <MessageList messages={messages} />
-      </div>
-      {error && (
-        <div className="bg-red-500 p-2 text-center text-white">
-          {error}
+    <div className="relative h-screen bg-chat-bg">
+      {/* Chat messages area */}
+      <div className="h-full overflow-y-auto pb-40" style={{ padding: '0 100px' }}>
+        <div className="container mx-auto max-w-3xl">
+          <MessageList messages={messages} />
+          {error && (
+            <div className="bg-red-500/80 px-4 py-2 text-sm text-center text-white rounded-lg mt-4">
+              {error}
+            </div>
+          )}
         </div>
-      )}
+      </div>
+
+      {/* Input area */}
       <ChatInput onSendMessage={sendMessage} disabled={isLoading} />
     </div>
   );

@@ -9,6 +9,7 @@
 # Production
 /build
 /dist
+/out
 
 # Development
 .env
@@ -16,6 +17,8 @@
 .env.development.local
 .env.test.local
 .env.production.local
+.next
+.vercel
 
 # Logs
 npm-debug.log*
@@ -28,6 +31,7 @@ logs
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
+!.vscode/settings.json
 .idea
 .DS_Store
 *.suo
@@ -50,3 +54,8 @@ logs
 # Misc
 .DS_Store
 Thumbs.db
+
+# Local development
+.env*.local
+.turbo
+storybook-static/
