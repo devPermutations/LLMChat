@@ -13,7 +13,8 @@ const api = axios.create({
 export const generateResponse = async (
   prompt: string,
   model: string = 'deepseek-r1:14b',
-  onPartialResponse?: (partial: string) => void
+  onPartialResponse?: (partial: string) => void,
+  signal?: AbortSignal
 ) => {
   try {
     console.log('Sending request to Ollama:', { model, prompt });
@@ -28,6 +29,7 @@ export const generateResponse = async (
         prompt,
         stream: true,
       }),
+      signal, // Add abort signal to fetch request
     });
 
     if (!response.ok || !response.body) {
@@ -64,6 +66,10 @@ export const generateResponse = async (
     console.log('Full response received:', fullResponse);
     return fullResponse;
   } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw error; // Re-throw abort errors
+    }
+    
     if (axios.isAxiosError(error)) {
       console.error('Axios error:', {
         message: error.message,

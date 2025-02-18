@@ -3,7 +3,7 @@ import ChatInput from './ChatInput';
 import useChat from '../../hooks/useChat';
 
 const ChatContainer = () => {
-  const { messages, isLoading, error, sendMessage } = useChat();
+  const { messages, isLoading, error, sendMessage, stopGeneration } = useChat();
 
   return (
     <div className="relative h-screen bg-chat-bg">
@@ -20,7 +20,11 @@ const ChatContainer = () => {
       </div>
 
       {/* Input area */}
-      <ChatInput onSendMessage={sendMessage} disabled={isLoading} />
+      <ChatInput 
+        onSendMessage={sendMessage} 
+        onStop={stopGeneration}
+        isLoading={isLoading} 
+      />
     </div>
   );
 };

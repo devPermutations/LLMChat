@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Message, ChatState } from '../types/chat';
 import { generateResponse } from '../services/api';
@@ -9,6 +9,8 @@ const useChat = () => {
     isLoading: false,
     error: null,
   });
+
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const addMessage = useCallback((content: string, role: Message['role']) => {
     const newMessage: Message = {
@@ -37,6 +39,14 @@ const useChat = () => {
     }));
   }, []);
 
+  const stopGeneration = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+      setState(prev => ({ ...prev, isLoading: false }));
+    }
+  }, []);
+
   const sendMessage = useCallback(async (content: string) => {
     try {
       setState((prev) => ({ ...prev, isLoading: true, error: null }));
@@ -45,6 +55,9 @@ const useChat = () => {
       const userMessage = addMessage(content, 'user');
 
       try {
+        // Create new AbortController for this request
+        abortControllerRef.current = new AbortController();
+
         // Add initial assistant message
         const assistantMessage = addMessage('', 'assistant');
         let fullResponse = '';
@@ -56,20 +69,26 @@ const useChat = () => {
           (partial) => {
             fullResponse += partial;
             updateLastMessage(fullResponse);
-          }
+          },
+          abortControllerRef.current.signal
         );
       } catch (error) {
-        // Remove both messages if AI fails to respond
-        setState((prev) => ({
-          ...prev,
-          messages: prev.messages.filter(msg => 
-            msg.id !== userMessage.id
-          ),
-          error: error instanceof Error ? error.message : 'Failed to send message. Please try again.',
-        }));
+        if (error.name === 'AbortError') {
+          console.log('Request was aborted');
+        } else {
+          // Remove both messages if AI fails to respond
+          setState((prev) => ({
+            ...prev,
+            messages: prev.messages.filter(msg => 
+              msg.id !== userMessage.id
+            ),
+            error: error instanceof Error ? error.message : 'Failed to send message. Please try again.',
+          }));
+        }
       }
     } finally {
       setState((prev) => ({ ...prev, isLoading: false }));
+      abortControllerRef.current = null;
     }
   }, [addMessage, updateLastMessage]);
 
@@ -87,6 +106,7 @@ const useChat = () => {
     error: state.error,
     sendMessage,
     clearMessages,
+    stopGeneration,
   };
 };
 

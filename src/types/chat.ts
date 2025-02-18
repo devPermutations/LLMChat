@@ -13,7 +13,8 @@ export interface ChatState {
 
 export interface ChatInputProps {
   onSendMessage: (message: string) => void;
-  disabled?: boolean;
+  onStop: () => void;
+  isLoading?: boolean;
 }
 
 export interface MessageListProps {
