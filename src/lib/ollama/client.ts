@@ -4,7 +4,8 @@
  */
 
 import axios, { AxiosInstance } from 'axios';
-import { OllamaConfig, GenerateRequestOptions, GenerateResponse, OllamaError } from './types';
+import { env } from '../../config/env';
+import { OllamaConfig, GenerateRequestOptions, GenerateResponse, OllamaError, OllamaStatus, OllamaModel, OllamaSystemInfo } from './types';
 
 export class OllamaClient {
   private api: AxiosInstance;
@@ -12,9 +13,9 @@ export class OllamaClient {
 
   constructor(config: Partial<OllamaConfig> = {}) {
     this.config = {
-      baseUrl: config.baseUrl ?? 'http://localhost:11434',
-      defaultModel: config.defaultModel ?? 'deepseek-r1:14b',
-      timeout: config.timeout ?? 60000,
+      baseUrl: config.baseUrl ?? env.VITE_OLLAMA_CLIENT_DEFAULT_URL,
+      defaultModel: config.defaultModel ?? env.VITE_OLLAMA_CLIENT_DEFAULT_MODEL,
+      timeout: config.timeout ?? env.VITE_OLLAMA_CLIENT_DEFAULT_TIMEOUT,
     };
 
     this.api = axios.create({
@@ -24,6 +25,99 @@ export class OllamaClient {
       },
       timeout: this.config.timeout,
     });
+  }
+
+  /**
+   * Check the status of the Ollama instance and available models
+   * @returns Promise with the status information
+   */
+  async getStatus(): Promise<OllamaStatus> {
+    try {
+      // Check if Ollama is responding
+      const healthCheck = await this.api.get('/api/tags');
+
+      if (healthCheck.status !== 200) {
+        return {
+          isResponding: false,
+          statusCode: healthCheck.status,
+          error: 'Ollama server is not responding properly',
+        };
+      }
+
+      // Get list of models
+      const modelsData = healthCheck.data;
+      console.log('Models data:', modelsData);
+      const models = modelsData.models as OllamaModel[];
+
+      // Fetch system information
+      let systemInfo: OllamaSystemInfo | undefined;
+      try {
+        const sysInfoResponse = await this.api.post('/api/show', {
+          name: 'system',
+        });
+
+        if (sysInfoResponse.status === 200) {
+          const sysInfo = sysInfoResponse.data;
+          console.log('System info:', sysInfo);
+          systemInfo = {
+            context_window: sysInfo.context_window,
+            gpu_memory: sysInfo.gpu_memory,
+            total_memory: sysInfo.total_memory,
+          };
+        }
+      } catch (error) {
+        console.error('Failed to fetch system information:', error);
+      }
+
+      // Fetch details for each model
+      const modelsWithDetails = await Promise.all(
+        models.map(async (model) => {
+          try {
+            const modelInfo = await this.api.post('/api/show', {
+              name: model.name,
+            });
+
+            if (modelInfo.status === 200) {
+              const details = modelInfo.data;
+              console.log(`Model ${model.name} details:`, details);
+              return {
+                ...model,
+                details: {
+                  parameter_size: details.parameters,
+                  quantization_level: details.quantization_level,
+                  context_length: details.context_length,
+                },
+              };
+            }
+          } catch (error) {
+            console.error(`Failed to fetch details for model ${model.name}:`, error);
+          }
+          return model;
+        })
+      );
+
+      const status = {
+        isResponding: true,
+        statusCode: healthCheck.status,
+        models: modelsWithDetails,
+        defaultModel: this.config.defaultModel,
+        systemInfo,
+      };
+
+      console.log('Final status:', status);
+      return status;
+    } catch (error) {
+      return {
+        isResponding: false,
+        error: `Ollama server is not running. Please follow these steps:
+
+1. Download Ollama from https://ollama.ai
+2. Install Ollama on your system
+3. Open a terminal and run: ollama serve
+4. Download a model by running: ollama pull ${this.config.defaultModel}
+5. Refresh this page`,
+      };
+    }
   }
 
   /**

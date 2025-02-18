@@ -25,4 +25,33 @@ export interface GenerateResponse {
 export interface OllamaError extends Error {
   status?: number;
   data?: unknown;
+}
+
+export interface OllamaModelDetails {
+  parameter_size?: string;
+  quantization_level?: string;
+  context_length?: number;
+}
+
+export interface OllamaModel {
+  name: string;
+  size: number;
+  digest: string;
+  modified_at: string;
+  details?: OllamaModelDetails;
+}
+
+export interface OllamaSystemInfo {
+  context_window?: number;
+  gpu_memory?: string;
+  total_memory?: string;
+}
+
+export interface OllamaStatus {
+  isResponding: boolean;
+  statusCode?: number;
+  models?: OllamaModel[];
+  defaultModel?: string;
+  error?: string;
+  systemInfo?: OllamaSystemInfo;
 } 

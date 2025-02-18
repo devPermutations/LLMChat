@@ -5,6 +5,7 @@
 
 import { env } from '../config/env';
 import { createClient } from '../lib/ollama';
+import type { OllamaStatus } from '../lib/ollama/types';
 
 // Create an Ollama client instance with environment-based configuration
 const ollamaClient = createClient({
@@ -12,6 +13,13 @@ const ollamaClient = createClient({
   defaultModel: env.VITE_OLLAMA_DEFAULT_MODEL,
   timeout: env.VITE_OLLAMA_TIMEOUT_MS,
 });
+
+/**
+ * Get the status of the Ollama instance and available models
+ */
+export const getOllamaStatus = (): Promise<OllamaStatus> => {
+  return ollamaClient.getStatus();
+};
 
 /**
  * Generates a response from the Ollama model using streaming
