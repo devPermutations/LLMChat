@@ -1,15 +1,30 @@
-import { useState, KeyboardEvent } from 'react';
+import { useState, KeyboardEvent, useEffect } from 'react';
 import { ChatInputProps } from '../../types/chat';
-import { StopIcon } from '@heroicons/react/24/solid';
+import ModelSelector from './ModelSelector';
 
 const ChatInput = ({ onSendMessage, onStop, isLoading = false }: ChatInputProps) => {
   const [message, setMessage] = useState('');
+  const [models, setModels] = useState<string[]>([]);
+  const [selectedModel, setSelectedModel] = useState('deepseek-r1:14b');
+
+  useEffect(() => {
+    // Fetch available models from Ollama
+    fetch('http://localhost:11434/api/tags')
+      .then(response => response.json())
+      .then(data => {
+        if (data.models) {
+          const modelNames = data.models.map((model: any) => model.name);
+          setModels(modelNames);
+        }
+      })
+      .catch(error => console.error('Error fetching models:', error));
+  }, []);
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       if (message.trim() && !isLoading) {
-        onSendMessage(message.trim());
+        onSendMessage(message.trim(), selectedModel);
         setMessage('');
       }
     }
@@ -26,7 +41,7 @@ const ChatInput = ({ onSendMessage, onStop, isLoading = false }: ChatInputProps)
           style={{
             width: '100%',
             height: '60px',
-            padding: '16px 100px 16px 16px',
+            padding: '16px 16px',
             backgroundColor: 'rgba(31, 41, 55, 0.95)',
             color: 'white',
             border: 'none',
@@ -38,35 +53,25 @@ const ChatInput = ({ onSendMessage, onStop, isLoading = false }: ChatInputProps)
           }}
           disabled={isLoading}
         />
-        {isLoading && (
-          <button
-            onClick={onStop}
-            style={{
-              position: 'absolute',
-              right: '-100px',
-              bottom: '12px',
-              backgroundColor: '#ef4444',
-              color: 'white',
-              borderRadius: '20px',
-              padding: '4px 12px',
-              height: '32px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              justifyContent: 'center',
-              border: '1px solid #dc2626',
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-              zIndex: 2000,
-              boxShadow: '0 2px 6px rgba(0, 0, 0, 0.2)',
-              fontSize: '14px',
-              fontWeight: '500'
-            }}
-          >
-            <StopIcon style={{ width: '14px', height: '14px' }} />
-            Stop
-          </button>
-        )}
+        
+        {/* Control bar under the textbox */}
+        <div className="flex justify-between items-center h-8 px-2 mt-2">
+          <ModelSelector
+            selectedModel={selectedModel}
+            onModelChange={setSelectedModel}
+            models={models}
+          />
+          
+          {isLoading && (
+            <button
+              onClick={onStop}
+              className="bg-black text-white text-[5px] px-1.5 rounded-full
+                       border-10 border-white leading-3 hover:bg-gray-900"
+            >
+              Stop
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

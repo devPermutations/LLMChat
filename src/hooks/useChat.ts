@@ -47,48 +47,34 @@ const useChat = () => {
     }
   }, []);
 
-  const sendMessage = useCallback(async (content: string) => {
+  const sendMessage = useCallback(async (content: string, model?: string) => {
     try {
-      setState((prev) => ({ ...prev, isLoading: true, error: null }));
-      
-      // Add user message
-      const userMessage = addMessage(content, 'user');
+      setState(prev => ({ ...prev, isLoading: true, error: null }));
+      addMessage(content, 'user');
 
-      try {
-        // Create new AbortController for this request
-        abortControllerRef.current = new AbortController();
+      abortControllerRef.current = new AbortController();
 
-        // Add initial assistant message
-        const assistantMessage = addMessage('', 'assistant');
-        let fullResponse = '';
+      let assistantMessage = addMessage('', 'assistant');
 
-        // Get AI response with streaming
-        await generateResponse(
-          content,
-          'deepseek-r1:14b',
-          (partial) => {
-            fullResponse += partial;
-            updateLastMessage(fullResponse);
-          },
-          abortControllerRef.current.signal
-        );
-      } catch (error) {
-        if (error.name === 'AbortError') {
-          console.log('Request was aborted');
-        } else {
-          // Remove both messages if AI fails to respond
-          setState((prev) => ({
-            ...prev,
-            messages: prev.messages.filter(msg => 
-              msg.id !== userMessage.id
-            ),
-            error: error instanceof Error ? error.message : 'Failed to send message. Please try again.',
-          }));
-        }
+      await generateResponse(
+        content,
+        model,
+        (partial) => {
+          assistantMessage.content += partial;
+          updateLastMessage(assistantMessage.content);
+        },
+        abortControllerRef.current.signal
+      );
+
+      setState(prev => ({ ...prev, isLoading: false }));
+    } catch (error) {
+      if (error instanceof Error) {
+        setState(prev => ({
+          ...prev,
+          isLoading: false,
+          error: error.message
+        }));
       }
-    } finally {
-      setState((prev) => ({ ...prev, isLoading: false }));
-      abortControllerRef.current = null;
     }
   }, [addMessage, updateLastMessage]);
 

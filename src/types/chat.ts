@@ -12,7 +12,7 @@ export interface ChatState {
 }
 
 export interface ChatInputProps {
-  onSendMessage: (message: string) => void;
+  onSendMessage: (message: string, model?: string) => void;
   onStop: () => void;
   isLoading?: boolean;
 }
@@ -23,4 +23,10 @@ export interface MessageListProps {
 
 export interface MessageItemProps {
   message: Message;
+}
+
+export interface ModelSelectorProps {
+  selectedModel: string;
+  onModelChange: (model: string) => void;
+  models: string[];
 } 

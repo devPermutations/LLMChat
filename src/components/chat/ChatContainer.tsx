@@ -8,7 +8,7 @@ const ChatContainer = () => {
   return (
     <div className="relative h-screen bg-chat-bg">
       {/* Chat messages area */}
-      <div className="h-full overflow-y-auto pb-40" style={{ padding: '0 100px' }}>
+      <div className="h-full overflow-y-auto pb-40" style={{ padding: '0 50px' }}>
         <div className="container mx-auto max-w-3xl">
           <MessageList messages={messages} />
           {error && (
