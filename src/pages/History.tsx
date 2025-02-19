@@ -3,7 +3,7 @@
  * Displays chat session history with conversation details
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DatabaseService } from '../services/database';
 import { Session, Message } from '../types/chat';
 
@@ -15,6 +15,22 @@ const History = ({ sessions }: HistoryProps) => {
   // Initialize database service and state management
   const [db] = useState(() => new DatabaseService());
   const [selectedSession, setSelectedSession] = useState<string | null>(null);
+  const [localSessions, setLocalSessions] = useState<Session[]>(sessions);
+
+  // Load sessions from database
+  useEffect(() => {
+    const loadSessions = async () => {
+      try {
+        const dbSessions = await db.getAllSessions();
+        console.log('Loaded sessions from database:', dbSessions);
+        setLocalSessions(dbSessions);
+      } catch (error) {
+        console.error('Failed to load sessions:', error);
+      }
+    };
+
+    loadSessions();
+  }, [db]);
 
   // Common button style (matching ChatInput.tsx)
   const buttonStyle = {
@@ -53,12 +69,15 @@ const History = ({ sessions }: HistoryProps) => {
       try {
         await db.wipeDatabase();
         setSelectedSession(null);
+        setLocalSessions([]);
       } catch (error) {
         console.error('Failed to wipe database:', error);
         alert('Failed to wipe database. Please try again.');
       }
     }
   };
+
+  console.log('Current local sessions:', localSessions);
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-8">
@@ -90,7 +109,7 @@ const History = ({ sessions }: HistoryProps) => {
 
       {/* Session List Section */}
       <div className="grid gap-2">
-        {sessions.map(session => (
+        {localSessions.map(session => (
           <div
             key={session.id}
             className={`bg-gray-800 p-3 rounded-lg cursor-pointer transition-colors text-sm ${
