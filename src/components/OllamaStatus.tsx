@@ -106,12 +106,12 @@ export function OllamaStatus({ isVisible }: OllamaStatusProps) {
               <span className="font-medium">Available Models: </span>
               <div className="flex flex-wrap items-center gap-2 mt-1">
                 {status.models?.map((model, index) => (
-                  <>
-                    <ModelInfo key={model.name} model={model} />
+                  <div key={model.name} className="flex items-center">
+                    <ModelInfo model={model} />
                     {index < (status.models?.length ?? 0) - 1 && (
-                      <span className="text-gray-500">•</span>
+                      <span className="text-gray-500 ml-2">•</span>
                     )}
-                  </>
+                  </div>
                 ))}
               </div>
             </div>
