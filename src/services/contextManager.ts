@@ -46,6 +46,30 @@ export class ContextManager {
   }
 
   /**
+   * Get messages relevant to the current query using conversation history
+   */
+  public getRelevantContext(): Message[] {
+    // Create a system message to establish the conversation context
+    const systemMessage: Message = {
+      id: crypto.randomUUID(),
+      role: 'assistant',
+      content: 'You are a helpful AI assistant. You should remember information from our conversation and use it to provide better responses.',
+      timestamp: new Date(),
+      tokenCount: 0
+    };
+
+    // Return the system message followed by all conversation history
+    return [systemMessage, ...this.session.messages];
+  }
+
+  /**
+   * Get the current token count for the session
+   */
+  public getCurrentTokenCount(): number {
+    return this.session.totalTokens;
+  }
+
+  /**
    * Summarize the conversation history to reduce token usage
    */
   public async summarizeHistory(): Promise<string> {
@@ -71,22 +95,6 @@ export class ContextManager {
     this.updateTotalTokens();
     
     return summary;
-  }
-
-  /**
-   * Get the current token count for the session
-   */
-  public getCurrentTokenCount(): number {
-    return this.session.totalTokens;
-  }
-
-  /**
-   * Get messages relevant to the current query using semantic similarity
-   */
-  public getRelevantContext(query: string): Message[] {
-    // TODO: Implement semantic search to find relevant messages
-    // For now, return the last few messages as context
-    return this.session.messages.slice(-5);
   }
 
   /**

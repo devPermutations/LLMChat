@@ -105,14 +105,30 @@ const useChat = ({ sessionManager, currentSession }: UseChatProps) => {
 
     try {
       setState(prev => ({ ...prev, isLoading: true, error: null }));
+      
+      // Add user message to the session
       addMessage(content, 'user');
 
       abortControllerRef.current = new AbortController();
 
+      // Get the context manager for the current session
+      const contextManager = sessionManager.getContextManager(currentSession.id);
+      if (!contextManager) {
+        throw new Error('Failed to get context manager');
+      }
+
+      // Get the relevant context including conversation history
+      const contextMessages = contextManager.getRelevantContext();
+      
+      // Format the full conversation context for the LLM
+      const fullPrompt = contextMessages
+        .map(msg => `${msg.role === 'user' ? 'Human' : 'Assistant'}: ${msg.content}`)
+        .join('\n\n');
+
       let assistantMessage = addMessage('', 'assistant');
 
       await generateResponse(
-        content,
+        fullPrompt,
         model || currentSession.model,
         (partial) => {
           assistantMessage.content += partial;
@@ -131,7 +147,7 @@ const useChat = ({ sessionManager, currentSession }: UseChatProps) => {
         }));
       }
     }
-  }, [addMessage, updateLastMessage, currentSession]);
+  }, [addMessage, updateLastMessage, currentSession, sessionManager]);
 
   const clearMessages = useCallback(() => {
     if (currentSession) {
