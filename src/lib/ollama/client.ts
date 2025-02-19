@@ -46,24 +46,73 @@ export class OllamaClient {
 
       // Get list of models
       const modelsData = healthCheck.data;
-      console.log('Models data:', modelsData);
-      const models = (modelsData.models ?? []).map((model: any) => ({
-        name: model.name,
-        size: model.size ?? 0,
-        digest: model.digest ?? '',
-        modified_at: model.modified_at ?? new Date().toISOString(),
-        details: {
-          parameter_size: model.parameter_size,
-          quantization_level: model.quantization_level,
-          context_length: model.context_length,
-        },
-      }));
+      console.log('Initial models data from /api/tags:', modelsData);
+      
+      // Fetch detailed information for each model
+      const modelsWithDetails = await Promise.all(
+        (modelsData.models ?? []).map(async (model: any) => {
+          try {
+            // Get detailed model information
+            console.log(`Fetching details for model ${model.name}...`);
+            const modelInfo = await this.api.post('/api/show', {
+              name: model.name
+            });
+            
+            console.log(`Received details for model ${model.name}:`, modelInfo.data);
+            
+            if (modelInfo.status === 200) {
+              const details = modelInfo.data;
+              return {
+                name: model.name,
+                size: model.size ?? 0,
+                digest: model.digest ?? '',
+                modified_at: model.modified_at ?? new Date().toISOString(),
+                details: {
+                  parameter_size: details.parameters,
+                  quantization_level: details.quantization,
+                  context_length: details.context_window || details.context_length,
+                },
+              };
+            }
+          } catch (error: any) {
+            console.error(`Failed to fetch details for model ${model.name}:`, error);
+            if (error.response?.data) {
+              console.log('Error response:', error.response.data);
+            }
+          }
+          
+          // Fallback if detailed info fetch fails
+          console.log(`Using fallback data for model ${model.name}:`, model);
+          return {
+            name: model.name,
+            size: model.size ?? 0,
+            digest: model.digest ?? '',
+            modified_at: model.modified_at ?? new Date().toISOString(),
+            details: {
+              parameter_size: model.parameter_size,
+              quantization_level: model.quantization_level,
+              context_length: model.context_window || model.context_length,
+            },
+          };
+        })
+      );
+
+      // Get system information from the first model's detailed info
+      const firstModel = modelsWithDetails[0];
+      console.log('First model details:', firstModel);
+      
+      const systemInfo = firstModel ? {
+        context_window: firstModel.details?.context_length,
+      } : undefined;
+
+      console.log('System info:', systemInfo);
 
       const status = {
         isResponding: true,
         statusCode: healthCheck.status,
-        models,
+        models: modelsWithDetails,
         defaultModel: this.config.defaultModel,
+        systemInfo,
       };
 
       console.log('Final status:', status);
