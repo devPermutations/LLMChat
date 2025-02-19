@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { DatabaseService } from '../services/database';
 import { Session, Message } from '../types/chat';
 
@@ -12,6 +13,7 @@ interface HistoryProps {
 }
 
 const History = ({ sessions }: HistoryProps) => {
+  const navigate = useNavigate();
   // Initialize database service and state management
   const [db] = useState(() => new DatabaseService());
   const [selectedSession, setSelectedSession] = useState<string | null>(null);
@@ -93,7 +95,8 @@ const History = ({ sessions }: HistoryProps) => {
           return '';
         }
         
-        const formattedMessage = `${role}: ${content}`;
+        // Add extra line break before all messages
+        const formattedMessage = `\n${role}: ${content}`;
         console.log('Formatted message:', formattedMessage);
         return formattedMessage;
       })
@@ -119,8 +122,8 @@ const History = ({ sessions }: HistoryProps) => {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-xl font-bold">Chat History</h1>
+      <div className="flex justify-between items-center mb-4">
+        <h1 style={{ fontSize: '18px', fontWeight: 500 }}>Chat History</h1>
         <div className="flex items-center">
           <a
             href="/"
@@ -146,34 +149,68 @@ const History = ({ sessions }: HistoryProps) => {
       </div>
 
       {/* Session List Section */}
-      <div className="grid gap-2">
+      <div className="grid gap-4">
         {localSessions.map(session => {
-          console.log('Session messages:', session.messages);
+          const isSelected = selectedSession === session.id;
           return (
-            <div
-              key={session.id}
-              className={`bg-gray-800 p-3 rounded-lg cursor-pointer transition-colors text-sm ${
-                selectedSession === session.id ? 'ring-2 ring-blue-500' : ''
-              }`}
-              onClick={() => {
-                console.log('Selected session messages:', session.messages);
-                setSelectedSession(session.id);
-              }}
-            >
-              {/* Session Summary Line */}
-              <div className="flex items-center">
-                <h3 className="font-semibold">{session.name || 'Unnamed Session'}</h3>
-                <span className="text-gray-400 ml-2">
-                  {session.messages.length} messages - {session.totalTokens.toLocaleString()} tokens - {new Date(session.createdAt).toLocaleString()}
-                </span>
+            <div key={session.id}>
+              {/* Session Header */}
+              <div
+                className={`bg-gray-800 p-3 rounded-lg cursor-pointer transition-colors text-sm ${
+                  isSelected ? 'rounded-b-none' : ''
+                }`}
+                onClick={() => {
+                  setSelectedSession(isSelected ? null : session.id);
+                }}
+              >
+                <div className="flex items-center">
+                  <h3 style={{ fontSize: '16px', fontWeight: 'normal' }}>"{session.name || 'Unnamed Session'}"</h3>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/?session=${session.id}`);
+                    }}
+                    style={buttonStyle}
+                    onMouseOver={handleMouseOver}
+                    onMouseOut={handleMouseOut}
+                    className="ml-2"
+                    aria-label="Resume chat session"
+                  >
+                    Resume
+                  </button>
+                  <span className="text-gray-400 ml-2" style={{ fontSize: '14px' }}>
+                    {session.messages.length} messages - {session.totalTokens.toLocaleString()} tokens - {new Date(session.createdAt).toLocaleString()}
+                  </span>
+                </div>
               </div>
 
-              {/* Conversation History (shown when selected) */}
-              {selectedSession === session.id && (
-                <div className="mt-3 pt-3 border-t border-gray-700">
-                  <pre className="bg-gray-900 p-3 rounded text-xs overflow-x-auto whitespace-pre-wrap">
-                    {formatConversationHistory(session.messages)}
-                  </pre>
+              {/* Expandable History Section */}
+              {isSelected && (
+                <div className="bg-gray-800 border-t border-gray-700 rounded-b-lg">
+                  <div 
+                    className="m-3 p-3 bg-gray-900 rounded"
+                    style={{ 
+                      height: '250px',
+                      overflow: 'auto',
+                      position: 'relative'
+                    }}
+                  >
+                    <div className="text-xs space-y-6">
+                      {session.messages.map((msg, index) => (
+                        <div 
+                          key={index}
+                          style={{ 
+                            color: msg.role === 'user' ? '#7dd3fc' : 'white',
+                            whiteSpace: 'pre-wrap',
+                            marginTop: index === 0 ? '0.5rem' : '1rem'
+                          }}
+                        >
+                          {'\n'}{msg.role === 'user' ? 'Human: ' : 'Assistant: '}
+                          {msg.content?.trim()}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

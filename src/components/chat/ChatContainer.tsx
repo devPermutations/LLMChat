@@ -34,32 +34,37 @@ const ChatContainer = ({
   });
 
   return (
-    <div className="relative h-screen bg-chat-bg">
-      {/* Messages Container: Scrollable area for chat messages */}
-      <div className="h-full overflow-y-auto pb-40" style={{ padding: '0 50px' }}>
-        {/* Center-aligned container with max width for better readability */}
-        <div className="container mx-auto max-w-3xl">
-          {/* List of chat messages */}
-          <MessageList messages={currentSession?.messages || messages} />
-          
-          {/* Error message display */}
-          {error && (
-            <div className="bg-red-500/80 px-4 py-2 text-sm text-center text-white rounded-lg mt-4">
-              {error}
-            </div>
-          )}
+    <div className="flex flex-col h-screen">
+      {/* Main scrollable container */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="container mx-auto max-w-3xl h-full px-4">
+          <div className="py-4 space-y-4">
+            {/* List of chat messages */}
+            <MessageList messages={currentSession?.messages || messages} />
+            
+            {/* Error message display */}
+            {error && (
+              <div className="bg-red-500/80 px-4 py-2 text-sm text-center text-white rounded-lg">
+                {error}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Chat Input Area: Fixed at the bottom */}
-      <ChatInput 
-        onSendMessage={sendMessage} 
-        onStop={stopGeneration}
-        onNewSession={onNewSession}
-        onToggleStatus={onToggleStatus}
-        isLoading={isLoading}
-        currentSession={currentSession}
-      />
+      {/* Chat Input Area: Fixed at bottom */}
+      <div className="flex-shrink-0 border-t border-gray-700 bg-chat-bg">
+        <div className="container mx-auto max-w-3xl px-4 py-4">
+          <ChatInput
+            onSendMessage={sendMessage}
+            onStop={stopGeneration}
+            isLoading={isLoading}
+            onNewSession={onNewSession}
+            onToggleStatus={onToggleStatus}
+            currentSession={currentSession}
+          />
+        </div>
+      </div>
     </div>
   );
 };

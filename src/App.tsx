@@ -9,7 +9,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useSearchParams } from 'react-router-dom';
 import ChatContainer from './components/chat/ChatContainer';
 import { OllamaStatus } from './components/OllamaStatus';
 import SessionList from './components/chat/SessionList';
@@ -17,13 +17,13 @@ import History from './pages/History';
 import { SessionManager } from './services/sessionManager';
 import { Session } from './types/chat';
 
-const App = () => {
-  // Initialize core services and state
+const AppContent = () => {
   const [sessionManager] = useState(() => new SessionManager());
   const [sessions, setSessions] = useState<Session[]>([]);
   const [currentSession, setCurrentSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showStatus, setShowStatus] = useState(false);
+  const [searchParams] = useSearchParams();
 
   /**
    * Initialize sessions on component mount
@@ -36,6 +36,17 @@ const App = () => {
       try {
         const loadedSessions = await sessionManager.getAllSessions();
         setSessions(loadedSessions);
+        
+        // Check for session ID in URL parameters
+        const sessionId = searchParams.get('session');
+        if (sessionId) {
+          const session = loadedSessions.find(s => s.id === sessionId);
+          if (session) {
+            setCurrentSession(session);
+            sessionManager.switchSession(session.id);
+            return;
+          }
+        }
         
         const current = sessionManager.getCurrentSession();
         if (current) {
@@ -54,7 +65,7 @@ const App = () => {
     };
 
     initializeSessions();
-  }, []);
+  }, [sessionManager, searchParams]);
 
   /**
    * Session Management Handlers
@@ -113,53 +124,59 @@ const App = () => {
   }
 
   return (
-    <Router>
-      <div className="flex flex-col min-h-screen bg-gray-900 text-white">
-        {/* Top Navigation Bar */}
-        <nav className="bg-gray-800 border-b border-white/10">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-16">
-              <div className="flex items-center">
-              </div>
-              <OllamaStatus isVisible={showStatus} />
+    <div className="flex flex-col min-h-screen bg-gray-900 text-white">
+      {/* Top Navigation Bar */}
+      <nav className="bg-gray-800 border-b border-white/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center">
             </div>
+            <OllamaStatus isVisible={showStatus} />
           </div>
-        </nav>
+        </div>
+      </nav>
 
-        {/* Application Routes */}
-        <Routes>
-          {/* Main Chat Route */}
-          <Route 
-            path="/" 
-            element={
-              <div className="flex flex-1">
-                <ChatContainer 
-                  sessionManager={sessionManager}
-                  currentSession={currentSession}
-                  onNewSession={handleNewSession}
-                  onToggleStatus={() => setShowStatus(!showStatus)}
-                />
-                <SessionList
-                  sessions={sessions}
-                  currentSessionId={currentSession?.id ?? null}
-                  onSessionSelect={handleSessionSelect}
-                  onSessionDelete={handleSessionDelete}
-                  onSessionRename={handleSessionRename}
-                />
-              </div>
-            }
-          />
-          {/* History Route */}
-          <Route 
-            path="/history" 
-            element={
-              <History 
-                sessions={sessions}
+      {/* Application Routes */}
+      <Routes>
+        {/* Main Chat Route */}
+        <Route 
+          path="/" 
+          element={
+            <div className="flex flex-1">
+              <ChatContainer 
+                sessionManager={sessionManager}
+                currentSession={currentSession}
+                onNewSession={handleNewSession}
+                onToggleStatus={() => setShowStatus(!showStatus)}
               />
-            }
-          />
-        </Routes>
-      </div>
+              <SessionList
+                sessions={sessions}
+                currentSessionId={currentSession?.id ?? null}
+                onSessionSelect={handleSessionSelect}
+                onSessionDelete={handleSessionDelete}
+                onSessionRename={handleSessionRename}
+              />
+            </div>
+          }
+        />
+        {/* History Route */}
+        <Route 
+          path="/history" 
+          element={
+            <History 
+              sessions={sessions}
+            />
+          }
+        />
+      </Routes>
+    </div>
+  );
+};
+
+const App = () => {
+  return (
+    <Router>
+      <AppContent />
     </Router>
   );
 };

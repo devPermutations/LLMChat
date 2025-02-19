@@ -7,22 +7,17 @@ const MessageList = ({ messages }: MessageListProps) => {
   const prevMessageCountRef = useRef(messages.length);
 
   useEffect(() => {
-    // Only scroll on initial load or when a new message starts (not during streaming)
-    if (messages.length > prevMessageCountRef.current) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-      prevMessageCountRef.current = messages.length;
-    }
+    // Scroll to bottom on initial load and when new messages are added
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    prevMessageCountRef.current = messages.length;
   }, [messages.length]);
 
   return (
-    <div className="flex-1 overflow-y-auto">
-      <div className="flex flex-col space-y-2">
-        {messages.map((message) => (
-          <MessageItem key={message.id} message={message} />
-        ))}
-        <div ref={messagesEndRef} />
-        <div style={{ height: '140px' }} aria-hidden="true" />
-      </div>
+    <div className="flex flex-col min-h-0 w-full">
+      {messages.map((message) => (
+        <MessageItem key={message.id} message={message} />
+      ))}
+      <div ref={messagesEndRef} />
     </div>
   );
 };
