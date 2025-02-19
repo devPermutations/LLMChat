@@ -7,6 +7,10 @@ import { useEffect, useState } from 'react';
 import { getOllamaStatus } from '../services/api';
 import type { OllamaStatus as OllamaStatusType, OllamaModel } from '../lib/ollama/types';
 
+interface OllamaStatusProps {
+  isVisible: boolean;
+}
+
 /**
  * Helper function to format large numbers with commas
  * e.g., 1000000 -> "1,000,000"
@@ -42,7 +46,7 @@ const ModelInfo = ({ model }: { model: OllamaModel }) => {
   );
 };
 
-export function OllamaStatus() {
+export function OllamaStatus({ isVisible }: OllamaStatusProps) {
   // State management for Ollama status and loading state
   const [status, setStatus] = useState<OllamaStatusType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -67,64 +71,66 @@ export function OllamaStatus() {
     return () => clearInterval(interval); // Cleanup on unmount
   }, []);
 
-  // Don't render anything if there's no status and we're not loading
-  if (!status && !isLoading) return null;
+  // Don't render anything if there's no status and we're not loading or if not visible
+  if (!isVisible || (!status && !isLoading)) return null;
 
   return (
-    <div className="p-4 space-y-2 text-sm bg-[#26252a] rounded-lg">
-      {isLoading ? (
-        // Loading state display
-        <div className="text-gray-400">Checking Ollama status...</div>
-      ) : status?.isResponding ? (
-        // Online status with server information
-        <>
-          {/* Connection status indicator */}
-          <div className="flex items-center gap-2 text-gray-400">
-            <span className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full" />
-              Status: Online (HTTP {status.statusCode})
-            </span>
-          </div>
-          
-          {/* Default model display */}
-          <div className="text-gray-400">
-            <span className="font-medium">Default Model: </span>
-            {status.models?.find(m => m.name === status.defaultModel) ? (
-              <ModelInfo model={status.models.find(m => m.name === status.defaultModel)!} />
-            ) : (
-              <span className="text-gray-500">{status.defaultModel}</span>
+    <div className="absolute bottom-full mb-2 left-0 right-0">
+      <div className="p-4 space-y-2 text-sm bg-[#26252a] rounded-lg">
+        {isLoading ? (
+          // Loading state display
+          <div className="text-gray-400">Checking Ollama status...</div>
+        ) : status?.isResponding ? (
+          // Online status with server information
+          <>
+            {/* Connection status indicator */}
+            <div className="flex items-center gap-2 text-gray-400">
+              <span className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full" />
+                Status: Online (HTTP {status.statusCode})
+              </span>
+            </div>
+            
+            {/* Default model display */}
+            <div className="text-gray-400">
+              <span className="font-medium">Default Model: </span>
+              {status.models?.find(m => m.name === status.defaultModel) ? (
+                <ModelInfo model={status.models.find(m => m.name === status.defaultModel)!} />
+              ) : (
+                <span className="text-gray-500">{status.defaultModel}</span>
+              )}
+            </div>
+
+            {/* Available models list */}
+            <div className="text-gray-400">
+              <span className="font-medium">Available Models: </span>
+              <div className="flex flex-wrap items-center gap-2 mt-1">
+                {status.models?.map((model, index) => (
+                  <>
+                    <ModelInfo key={model.name} model={model} />
+                    {index < (status.models?.length ?? 0) - 1 && (
+                      <span className="text-gray-500">•</span>
+                    )}
+                  </>
+                ))}
+              </div>
+            </div>
+          </>
+        ) : (
+          // Offline status with error message
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-red-400">
+              <div className="w-2 h-2 bg-red-500 rounded-full" />
+              Status: Offline
+            </div>
+            {status?.error && (
+              <div className="text-gray-400 whitespace-pre-line">
+                {status.error}
+              </div>
             )}
           </div>
-
-          {/* Available models list */}
-          <div className="text-gray-400">
-            <span className="font-medium">Available Models: </span>
-            <div className="flex flex-wrap items-center gap-2 mt-1">
-              {status.models?.map((model, index) => (
-                <>
-                  <ModelInfo key={model.name} model={model} />
-                  {index < (status.models?.length ?? 0) - 1 && (
-                    <span className="text-gray-500">•</span>
-                  )}
-                </>
-              ))}
-            </div>
-          </div>
-        </>
-      ) : (
-        // Offline status with error message
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-red-400">
-            <div className="w-2 h-2 bg-red-500 rounded-full" />
-            Status: Offline
-          </div>
-          {status?.error && (
-            <div className="text-gray-400 whitespace-pre-line">
-              {status.error}
-            </div>
-          )}
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 } 

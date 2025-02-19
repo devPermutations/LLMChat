@@ -5,7 +5,7 @@
 
 import axios, { AxiosInstance } from 'axios';
 import { env } from '../../config/env';
-import { OllamaConfig, GenerateRequestOptions, GenerateResponse, OllamaError, OllamaStatus, OllamaModel, OllamaSystemInfo } from './types';
+import { OllamaConfig, GenerateRequestOptions, GenerateResponse, OllamaError, OllamaStatus } from './types';
 
 export class OllamaClient {
   private api: AxiosInstance;

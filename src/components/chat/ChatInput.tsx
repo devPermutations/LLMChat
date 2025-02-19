@@ -5,16 +5,24 @@
  * - Model selection dropdown
  * - History and Stop generation buttons
  * - Handles message submission and model switching
+ * - Manages chat sessions and context window
  */
 import { useState, KeyboardEvent, useEffect } from 'react';
 import { ChatInputProps } from '../../types/chat';
 import ModelSelector from './ModelSelector';
 
-const ChatInput = ({ onSendMessage, onStop, isLoading = false }: ChatInputProps) => {
+const ChatInput = ({ 
+  onSendMessage, 
+  onStop, 
+  onNewSession, 
+  isLoading = false, 
+  currentSession,
+  onToggleStatus
+}: ChatInputProps) => {
   // Local state management
   const [message, setMessage] = useState(''); // Current message text
   const [models, setModels] = useState<string[]>([]); // Available AI models
-  const [selectedModel, setSelectedModel] = useState('deepseek-r1:14b'); // Currently selected model
+  const [selectedModel, setSelectedModel] = useState(currentSession?.model || 'deepseek-r1:14b'); // Currently selected model
 
   // Fetch available models on component mount
   useEffect(() => {
@@ -42,6 +50,30 @@ const ChatInput = ({ onSendMessage, onStop, isLoading = false }: ChatInputProps)
         setMessage('');
       }
     }
+  };
+
+  // Common button style
+  const buttonStyle = {
+    backgroundColor: 'black',
+    color: 'white',
+    fontSize: '10px',
+    padding: '2px 6px',
+    borderRadius: '9999px',
+    border: '1px solid white',
+    lineHeight: '1',
+    cursor: 'pointer',
+    minHeight: 'unset',
+    marginLeft: '8px',
+    transition: 'background-color 0.2s ease',
+  };
+
+  // Common button hover handlers
+  const handleMouseOver = (e: React.MouseEvent<HTMLElement>) => {
+    e.currentTarget.style.backgroundColor = '#333';
+  };
+
+  const handleMouseOut = (e: React.MouseEvent<HTMLElement>) => {
+    e.currentTarget.style.backgroundColor = 'black';
   };
 
   return (
@@ -80,44 +112,36 @@ const ChatInput = ({ onSendMessage, onStop, isLoading = false }: ChatInputProps)
             models={models}
           />
           
-          {/* History button */}
-          <button
+          {/* History button - now using Link */}
+          <a
+            href="/history"
             style={{
-              backgroundColor: 'black',
-              color: 'white',
-              fontSize: '10px',
-              padding: '2px 6px',
-              borderRadius: '9999px',
-              border: '1px solid white',
-              lineHeight: '1',
-              cursor: 'pointer',
-              minHeight: 'unset',
-              marginLeft: '8px',
-              transition: 'background-color 0.2s ease',
+              ...buttonStyle,
+              textDecoration: 'none',
+              display: 'inline-block'
             }}
-            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#333'}
-            onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'black'}
+            onMouseOver={handleMouseOver}
+            onMouseOut={handleMouseOut}
           >
             History
+          </a>
+
+          {/* Status button */}
+          <button
+            onClick={() => onToggleStatus?.()}
+            style={buttonStyle}
+            onMouseOver={handleMouseOver}
+            onMouseOut={handleMouseOut}
+          >
+            Status
           </button>
 
           {/* New button */}
           <button
-            style={{
-              backgroundColor: 'black',
-              color: 'white',
-              fontSize: '10px',
-              padding: '2px 6px',
-              borderRadius: '9999px',
-              border: '1px solid white',
-              lineHeight: '1',
-              cursor: 'pointer',
-              minHeight: 'unset',
-              marginLeft: '8px',
-              transition: 'background-color 0.2s ease',
-            }}
-            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#333'}
-            onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'black'}
+            onClick={onNewSession}
+            style={buttonStyle}
+            onMouseOver={handleMouseOver}
+            onMouseOut={handleMouseOut}
           >
             New
           </button>
@@ -126,24 +150,23 @@ const ChatInput = ({ onSendMessage, onStop, isLoading = false }: ChatInputProps)
           {isLoading && (
             <button
               onClick={onStop}
-              style={{
-                backgroundColor: 'black',
-                color: 'white',
-                fontSize: '10px',
-                padding: '2px 6px',
-                borderRadius: '9999px',
-                border: '1px solid white',
-                lineHeight: '1',
-                cursor: 'pointer',
-                minHeight: 'unset',
-                marginLeft: '8px',
-                transition: 'background-color 0.2s ease',
-              }}
-              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#333'}
-              onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'black'}
+              style={buttonStyle}
+              onMouseOver={handleMouseOver}
+              onMouseOut={handleMouseOut}
             >
               Stop
             </button>
+          )}
+
+          {/* Session stats */}
+          {currentSession && (
+            <span style={{
+              fontSize: '8px',
+              color: '#9CA3AF',
+              marginLeft: '8px'
+            }}>
+              {currentSession.messages.length} messages - {currentSession.totalTokens.toLocaleString()} tokens
+            </span>
           )}
         </div>
       </div>

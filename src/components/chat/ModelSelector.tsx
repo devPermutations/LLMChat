@@ -5,21 +5,25 @@ const ModelSelector = ({ selectedModel, onModelChange, models }: ModelSelectorPr
     <select
       value={selectedModel}
       onChange={(e) => onModelChange(e.target.value)}
-      className="bg-gray-800/95 text-white text-sm px-3 py-1.5 rounded-full border border-white/10 
-               appearance-none cursor-pointer hover:bg-gray-700/95 transition-colors
-               focus:outline-none focus:ring-2 focus:ring-white/20"
+      className="text-white text-sm px-3 py-1.5 rounded-full
+               appearance-none cursor-pointer hover:text-gray-300 transition-colors"
       style={{ 
         WebkitAppearance: 'none', 
         MozAppearance: 'none',
-        borderRadius: '9999px'
+        borderRadius: '9999px',
+        border: 'none',
+        background: 'transparent',
+        outline: 'none'
       }}
     >
       {models.map((model) => (
         <option 
           key={model} 
           value={model} 
-          className="bg-gray-800 rounded-lg"
-          style={{ borderRadius: '0.5rem' }}
+          className="text-white"
+          style={{ 
+            background: '#26252a'
+          }}
         >
           {model}
         </option>

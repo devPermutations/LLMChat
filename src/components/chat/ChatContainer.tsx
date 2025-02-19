@@ -6,15 +6,32 @@
 import MessageList from './MessageList';
 import ChatInput from './ChatInput';
 import useChat from '../../hooks/useChat';
+import { Session } from '../../types/chat';
+import { SessionManager } from '../../services/sessionManager';
 
-const ChatContainer = () => {
+interface ChatContainerProps {
+  sessionManager: SessionManager;
+  currentSession: Session | null;
+  onNewSession: () => void;
+  onToggleStatus: () => void;
+}
+
+const ChatContainer = ({ 
+  sessionManager, 
+  currentSession, 
+  onNewSession,
+  onToggleStatus
+}: ChatContainerProps) => {
   // Get chat functionality from custom hook
   // - messages: Array of chat messages
   // - isLoading: Boolean indicating if a response is being generated
   // - error: Error message if something goes wrong
   // - sendMessage: Function to send a new message
   // - stopGeneration: Function to stop the AI's response generation
-  const { messages, isLoading, error, sendMessage, stopGeneration } = useChat();
+  const { messages, isLoading, error, sendMessage, stopGeneration } = useChat({
+    sessionManager,
+    currentSession
+  });
 
   return (
     <div className="relative h-screen bg-chat-bg">
@@ -23,7 +40,7 @@ const ChatContainer = () => {
         {/* Center-aligned container with max width for better readability */}
         <div className="container mx-auto max-w-3xl">
           {/* List of chat messages */}
-          <MessageList messages={messages} />
+          <MessageList messages={currentSession?.messages || messages} />
           
           {/* Error message display */}
           {error && (
@@ -38,7 +55,10 @@ const ChatContainer = () => {
       <ChatInput 
         onSendMessage={sendMessage} 
         onStop={stopGeneration}
-        isLoading={isLoading} 
+        onNewSession={onNewSession}
+        onToggleStatus={onToggleStatus}
+        isLoading={isLoading}
+        currentSession={currentSession}
       />
     </div>
   );
