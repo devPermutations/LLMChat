@@ -51,7 +51,7 @@ const useChat = ({ sessionManager, currentSession }: UseChatProps) => {
     return newMessage;
   }, [currentSession, sessionManager]);
 
-  const updateLastMessage = useCallback((content: string) => {
+  const updateLastMessage = useCallback(async (content: string) => {
     setState((prev) => ({
       ...prev,
       messages: prev.messages.map((msg, index) => 
@@ -78,6 +78,9 @@ const useChat = ({ sessionManager, currentSession }: UseChatProps) => {
           const newTokenCount = contextManager.countTokens(content);
           lastMessage.tokenCount = newTokenCount;
           currentSession.totalTokens += newTokenCount;
+
+          // Update the message in the database
+          await sessionManager.updateMessage(lastMessage);
         }
 
         currentSession.messages = updatedMessages;
@@ -106,6 +109,18 @@ const useChat = ({ sessionManager, currentSession }: UseChatProps) => {
     try {
       setState(prev => ({ ...prev, isLoading: true, error: null }));
       
+      // If this is a new session (no messages), set the name first
+      if (currentSession.messages.length === 0) {
+        // Take first 6 words or all words if less than 6
+        const words = content.split(/\s+/);
+        const titleWords = words.slice(0, 6);
+        const sessionName = titleWords.join(' ');
+        
+        // Update session name
+        currentSession.name = sessionName;
+        await sessionManager.updateSession(currentSession);
+      }
+
       // Add user message to the session
       addMessage(content, 'user');
 

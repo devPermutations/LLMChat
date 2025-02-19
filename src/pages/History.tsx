@@ -22,8 +22,17 @@ const History = ({ sessions }: HistoryProps) => {
     const loadSessions = async () => {
       try {
         const dbSessions = await db.getAllSessions();
-        console.log('Loaded sessions from database:', dbSessions);
-        setLocalSessions(dbSessions);
+        console.log('All loaded sessions:', dbSessions);
+        
+        // Filter out empty sessions
+        const validSessions = dbSessions.filter(session => 
+          session.messages && 
+          session.messages.length > 0 && 
+          session.totalTokens > 0
+        );
+        
+        console.log('Valid sessions after filtering:', validSessions);
+        setLocalSessions(validSessions);
       } catch (error) {
         console.error('Failed to load sessions:', error);
       }
@@ -58,8 +67,37 @@ const History = ({ sessions }: HistoryProps) => {
 
   // Helper function to format conversation history
   const formatConversationHistory = (messages: Message[]): string => {
+    console.log('Formatting messages:', messages.map(msg => ({
+      role: msg.role,
+      content: msg.content,
+      contentLength: msg.content?.length,
+      timestamp: msg.timestamp
+    })));
+    
     return messages
-      .map(msg => `${msg.role === 'user' ? 'Human' : 'Assistant'}: ${msg.content}`)
+      .map(msg => {
+        const role = msg.role === 'user' ? 'Human' : 'Assistant';
+        const content = msg.content?.trim() || '';
+        
+        // Log each message processing
+        console.log('Processing message:', {
+          role: msg.role,
+          originalContent: msg.content,
+          trimmedContent: content,
+          hasContent: content.length > 0
+        });
+        
+        // Include all non-empty messages
+        if (content.length === 0) {
+          console.log('Skipping empty message');
+          return '';
+        }
+        
+        const formattedMessage = `${role}: ${content}`;
+        console.log('Formatted message:', formattedMessage);
+        return formattedMessage;
+      })
+      .filter(msg => msg.length > 0) // Remove empty messages
       .join('\n\n');
   };
 
@@ -109,32 +147,38 @@ const History = ({ sessions }: HistoryProps) => {
 
       {/* Session List Section */}
       <div className="grid gap-2">
-        {localSessions.map(session => (
-          <div
-            key={session.id}
-            className={`bg-gray-800 p-3 rounded-lg cursor-pointer transition-colors text-sm ${
-              selectedSession === session.id ? 'ring-2 ring-blue-500' : ''
-            }`}
-            onClick={() => setSelectedSession(session.id)}
-          >
-            {/* Session Summary Line */}
-            <div className="flex items-center">
-              <h3 className="font-semibold">{session.name || 'Unnamed Session'}</h3>
-              <span className="text-gray-400 ml-2">
-                {session.messages.length} messages - {session.totalTokens.toLocaleString()} tokens - {new Date(session.createdAt).toLocaleString()}
-              </span>
-            </div>
-
-            {/* Conversation History (shown when selected) */}
-            {selectedSession === session.id && (
-              <div className="mt-3 pt-3 border-t border-gray-700">
-                <pre className="bg-gray-900 p-3 rounded text-xs overflow-x-auto whitespace-pre-wrap">
-                  {formatConversationHistory(session.messages)}
-                </pre>
+        {localSessions.map(session => {
+          console.log('Session messages:', session.messages);
+          return (
+            <div
+              key={session.id}
+              className={`bg-gray-800 p-3 rounded-lg cursor-pointer transition-colors text-sm ${
+                selectedSession === session.id ? 'ring-2 ring-blue-500' : ''
+              }`}
+              onClick={() => {
+                console.log('Selected session messages:', session.messages);
+                setSelectedSession(session.id);
+              }}
+            >
+              {/* Session Summary Line */}
+              <div className="flex items-center">
+                <h3 className="font-semibold">{session.name || 'Unnamed Session'}</h3>
+                <span className="text-gray-400 ml-2">
+                  {session.messages.length} messages - {session.totalTokens.toLocaleString()} tokens - {new Date(session.createdAt).toLocaleString()}
+                </span>
               </div>
-            )}
-          </div>
-        ))}
+
+              {/* Conversation History (shown when selected) */}
+              {selectedSession === session.id && (
+                <div className="mt-3 pt-3 border-t border-gray-700">
+                  <pre className="bg-gray-900 p-3 rounded text-xs overflow-x-auto whitespace-pre-wrap">
+                    {formatConversationHistory(session.messages)}
+                  </pre>
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

@@ -146,4 +146,40 @@ export class SessionManager {
       this.currentSessionId = mostRecent.id;
     }
   }
+
+  /**
+   * Update an existing message
+   */
+  public async updateMessage(message: Message): Promise<void> {
+    // Update message in database
+    await this.db.updateMessage(message);
+    
+    // If this is for the current session, update the session in database
+    if (this.currentSessionId) {
+      const session = this.sessions.get(this.currentSessionId);
+      if (session) {
+        await this.db.updateSession(session);
+      }
+    }
+  }
+
+  /**
+   * Update an existing session
+   */
+  public async updateSession(session: Session): Promise<void> {
+    console.log('Updating session:', {
+      id: session.id,
+      name: session.name,
+      messageCount: session.messages.length,
+      totalTokens: session.totalTokens
+    });
+    
+    // Update session in database
+    await this.db.updateSession(session);
+    
+    // Update local state
+    this.sessions.set(session.id, session);
+    
+    console.log('Session updated successfully');
+  }
 } 
