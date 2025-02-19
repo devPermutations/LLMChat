@@ -67,12 +67,6 @@ const AppContent = () => {
    * Session Management Handlers
    */
   
-  // Switch to a different chat session
-  const handleSessionSelect = (sessionId: string) => {
-    const session = sessionManager.switchSession(sessionId);
-    setCurrentSession(session);
-  };
-
   // Create a new chat session
   const handleNewSession = async () => {
     try {

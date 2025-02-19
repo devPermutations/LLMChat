@@ -112,13 +112,13 @@ export class SessionManager {
   /**
    * Get relevant context for the current query
    */
-  public getRelevantContext(query: string): Message[] {
+  public getRelevantContext(): Message[] {
     if (!this.currentSessionId) {
       return [];
     }
 
     const contextManager = this.contextManagers.get(this.currentSessionId);
-    return contextManager ? contextManager.getRelevantContext(query) : [];
+    return contextManager ? contextManager.getRelevantContext() : [];
   }
 
   /**
