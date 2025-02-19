@@ -47,61 +47,23 @@ export class OllamaClient {
       // Get list of models
       const modelsData = healthCheck.data;
       console.log('Models data:', modelsData);
-      const models = modelsData.models as OllamaModel[];
-
-      // Fetch system information
-      let systemInfo: OllamaSystemInfo | undefined;
-      try {
-        const sysInfoResponse = await this.api.post('/api/show', {
-          name: 'system',
-        });
-
-        if (sysInfoResponse.status === 200) {
-          const sysInfo = sysInfoResponse.data;
-          console.log('System info:', sysInfo);
-          systemInfo = {
-            context_window: sysInfo.context_window,
-            gpu_memory: sysInfo.gpu_memory,
-            total_memory: sysInfo.total_memory,
-          };
-        }
-      } catch (error) {
-        console.error('Failed to fetch system information:', error);
-      }
-
-      // Fetch details for each model
-      const modelsWithDetails = await Promise.all(
-        models.map(async (model) => {
-          try {
-            const modelInfo = await this.api.post('/api/show', {
-              name: model.name,
-            });
-
-            if (modelInfo.status === 200) {
-              const details = modelInfo.data;
-              console.log(`Model ${model.name} details:`, details);
-              return {
-                ...model,
-                details: {
-                  parameter_size: details.parameters,
-                  quantization_level: details.quantization_level,
-                  context_length: details.context_length,
-                },
-              };
-            }
-          } catch (error) {
-            console.error(`Failed to fetch details for model ${model.name}:`, error);
-          }
-          return model;
-        })
-      );
+      const models = (modelsData.models ?? []).map((model: any) => ({
+        name: model.name,
+        size: model.size ?? 0,
+        digest: model.digest ?? '',
+        modified_at: model.modified_at ?? new Date().toISOString(),
+        details: {
+          parameter_size: model.parameter_size,
+          quantization_level: model.quantization_level,
+          context_length: model.context_length,
+        },
+      }));
 
       const status = {
         isResponding: true,
         statusCode: healthCheck.status,
-        models: modelsWithDetails,
+        models,
         defaultModel: this.config.defaultModel,
-        systemInfo,
       };
 
       console.log('Final status:', status);
