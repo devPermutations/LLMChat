@@ -100,6 +100,27 @@ const ChatInput = ({ onSendMessage, onStop, isLoading = false }: ChatInputProps)
           >
             History
           </button>
+
+          {/* New button */}
+          <button
+            style={{
+              backgroundColor: 'black',
+              color: 'white',
+              fontSize: '10px',
+              padding: '2px 6px',
+              borderRadius: '9999px',
+              border: '1px solid white',
+              lineHeight: '1',
+              cursor: 'pointer',
+              minHeight: 'unset',
+              marginLeft: '8px',
+              transition: 'background-color 0.2s ease',
+            }}
+            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#333'}
+            onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'black'}
+          >
+            New
+          </button>
           
           {/* Stop generation button - only shown while loading */}
           {isLoading && (
