@@ -12,11 +12,23 @@ const MessageList = ({ messages }: MessageListProps) => {
     prevMessageCountRef.current = messages.length;
   }, [messages.length]);
 
+  // Create empty spaces that match message height/padding
+  const EmptySpace = () => (
+    <div style={{ width: '100%', boxSizing: 'border-box', height: '60px' }} />
+  );
+
   return (
-    <div className="flex flex-col min-h-0 w-full">
+    <div className="flex flex-col w-full">
       {messages.map((message) => (
         <MessageItem key={message.id} message={message} />
       ))}
+      {/* Add 6 empty spaces at the bottom */}
+      <EmptySpace />
+      <EmptySpace />
+      <EmptySpace />
+      <EmptySpace />
+      <EmptySpace />
+      <EmptySpace />
       <div ref={messagesEndRef} />
     </div>
   );

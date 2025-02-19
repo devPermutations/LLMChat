@@ -4,14 +4,12 @@
  * Features:
  * - Chat interface with session management
  * - History page for analytics
- * - Session list sidebar
  * - Navigation and status display
  */
 
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useSearchParams } from 'react-router-dom';
 import ChatContainer from './components/chat/ChatContainer';
-import SessionList from './components/chat/SessionList';
 import History from './pages/History';
 import { SessionManager } from './services/sessionManager';
 import { Session } from './types/chat';
@@ -87,28 +85,6 @@ const AppContent = () => {
     }
   };
 
-  // Delete an existing chat session
-  const handleSessionDelete = async (sessionId: string) => {
-    try {
-      await sessionManager.deleteSession(sessionId);
-      const allSessions = await sessionManager.getAllSessions();
-      setSessions(allSessions);
-      setCurrentSession(sessionManager.getCurrentSession());
-    } catch (error) {
-      console.error('Failed to delete session:', error);
-    }
-  };
-
-  // Rename an existing chat session
-  const handleSessionRename = (sessionId: string, newName: string) => {
-    const session = sessions.find(s => s.id === sessionId);
-    if (session) {
-      session.name = newName;
-      session.updatedAt = new Date();
-      setSessions([...sessions]);
-    }
-  };
-
   // Loading state display
   if (isLoading) {
     return (
@@ -122,7 +98,7 @@ const AppContent = () => {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-900 text-white">
+    <div className="flex flex-col min-h-screen bg-gray-900 text-white overflow-x-hidden">
       {/* Top Navigation Bar */}
       <nav className="bg-gray-800 border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -139,18 +115,11 @@ const AppContent = () => {
         <Route 
           path="/" 
           element={
-            <div className="flex flex-1">
+            <div className="flex-1">
               <ChatContainer 
                 sessionManager={sessionManager}
                 currentSession={currentSession}
                 onNewSession={handleNewSession}
-              />
-              <SessionList
-                sessions={sessions}
-                currentSessionId={currentSession?.id ?? null}
-                onSessionSelect={handleSessionSelect}
-                onSessionDelete={handleSessionDelete}
-                onSessionRename={handleSessionRename}
               />
             </div>
           }

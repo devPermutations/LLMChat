@@ -79,20 +79,17 @@ const ChatInput = ({
   return (
     // Fixed position container at the bottom of the chat
     <div style={{ 
-      width: '100%', 
-      display: 'flex', 
-      justifyContent: 'center', 
       position: 'fixed', 
       bottom: '32px', 
-      zIndex: 1000,
-      pointerEvents: 'none' // This ensures clicks pass through the container's empty space
+      left: '50%',
+      transform: 'translateX(-50%)',
+      width: 'min(90ch, 100% - 4rem)',
+      zIndex: 1000
     }}>
-      {/* Input container with max width constraint */}
+      {/* Input container */}
       <div style={{ 
-        position: 'relative', 
-        width: '90ch', 
-        maxWidth: '90vw',
-        pointerEvents: 'auto' // Re-enable pointer events for the actual content
+        position: 'relative',
+        width: '100%'
       }}>
         {/* Message input textarea */}
         <textarea

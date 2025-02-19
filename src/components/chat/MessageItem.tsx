@@ -12,7 +12,7 @@ const MessageItem = ({ message }: MessageItemProps) => {
   // Render user message with right-aligned blue bubbles
   if (isUser) {
     return (
-      <div style={{ width: '100%', display: 'flex', justifyContent: 'flex-end', padding: '8px 16px' }}>
+      <div style={{ width: '100%', boxSizing: 'border-box', display: 'flex', justifyContent: 'flex-end', padding: '8px 60px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
           {/* Timestamp display */}
           <div style={{
@@ -91,7 +91,7 @@ const MessageItem = ({ message }: MessageItemProps) => {
 
   // Render assistant message with left-aligned gray bubbles
   return (
-    <div style={{ width: '100%', display: 'flex', padding: '8px 16px' }}>
+    <div style={{ width: '100%', boxSizing: 'border-box', display: 'flex', padding: '8px 60px' }}>
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         {/* Timestamp display */}
         <div style={{
