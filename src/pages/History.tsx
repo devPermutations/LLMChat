@@ -6,7 +6,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DatabaseService } from '../services/database';
-import { Session, Message } from '../types/chat';
+import { Session } from '../types/chat';
 
 interface HistoryProps {
   sessions: Session[];
@@ -65,43 +65,6 @@ const History = ({ sessions }: HistoryProps) => {
 
   const handleMouseOut = (e: React.MouseEvent<HTMLElement>) => {
     e.currentTarget.style.backgroundColor = 'black';
-  };
-
-  // Helper function to format conversation history
-  const formatConversationHistory = (messages: Message[]): string => {
-    console.log('Formatting messages:', messages.map(msg => ({
-      role: msg.role,
-      content: msg.content,
-      contentLength: msg.content?.length,
-      timestamp: msg.timestamp
-    })));
-    
-    return messages
-      .map(msg => {
-        const role = msg.role === 'user' ? 'Human' : 'Assistant';
-        const content = msg.content?.trim() || '';
-        
-        // Log each message processing
-        console.log('Processing message:', {
-          role: msg.role,
-          originalContent: msg.content,
-          trimmedContent: content,
-          hasContent: content.length > 0
-        });
-        
-        // Include all non-empty messages
-        if (content.length === 0) {
-          console.log('Skipping empty message');
-          return '';
-        }
-        
-        // Add extra line break before all messages
-        const formattedMessage = `\n${role}: ${content}`;
-        console.log('Formatted message:', formattedMessage);
-        return formattedMessage;
-      })
-      .filter(msg => msg.length > 0) // Remove empty messages
-      .join('\n\n');
   };
 
   // Handle database wipe

@@ -8,20 +8,21 @@ import ChatInput from './ChatInput';
 import useChat from '../../hooks/useChat';
 import { Session } from '../../types/chat';
 import { SessionManager } from '../../services/sessionManager';
+import { OllamaStatus } from '../OllamaStatus';
+import { useState } from 'react';
 
 interface ChatContainerProps {
   sessionManager: SessionManager;
   currentSession: Session | null;
   onNewSession: () => void;
-  onToggleStatus: () => void;
 }
 
 const ChatContainer = ({ 
   sessionManager, 
   currentSession, 
   onNewSession,
-  onToggleStatus
 }: ChatContainerProps) => {
+  const [showStatus, setShowStatus] = useState(false);
   // Get chat functionality from custom hook
   // - messages: Array of chat messages
   // - isLoading: Boolean indicating if a response is being generated
@@ -55,14 +56,17 @@ const ChatContainer = ({
       {/* Chat Input Area: Fixed at bottom */}
       <div className="flex-shrink-0 border-t border-gray-700 bg-chat-bg">
         <div className="container mx-auto max-w-3xl px-4 py-4">
-          <ChatInput
-            onSendMessage={sendMessage}
-            onStop={stopGeneration}
-            isLoading={isLoading}
-            onNewSession={onNewSession}
-            onToggleStatus={onToggleStatus}
-            currentSession={currentSession}
-          />
+          <div className="relative">
+            <OllamaStatus isVisible={showStatus} />
+            <ChatInput
+              onSendMessage={sendMessage}
+              onStop={stopGeneration}
+              isLoading={isLoading}
+              onNewSession={onNewSession}
+              onToggleStatus={() => setShowStatus(!showStatus)}
+              currentSession={currentSession}
+            />
+          </div>
         </div>
       </div>
     </div>

@@ -75,8 +75,8 @@ export function OllamaStatus({ isVisible }: OllamaStatusProps) {
   if (!isVisible || (!status && !isLoading)) return null;
 
   return (
-    <div className="absolute bottom-full mb-2 left-0 right-0">
-      <div className="p-4 space-y-2 text-sm bg-[#26252a] rounded-lg">
+    <div className="absolute bottom-full left-0 right-0 mb-4 px-4">
+      <div className="p-4 space-y-2 text-sm bg-[#26252a] rounded-lg border border-[#4b5563] shadow-lg">
         {isLoading ? (
           // Loading state display
           <div className="text-gray-400">Checking Ollama status...</div>

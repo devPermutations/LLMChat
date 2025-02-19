@@ -11,7 +11,6 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useSearchParams } from 'react-router-dom';
 import ChatContainer from './components/chat/ChatContainer';
-import { OllamaStatus } from './components/OllamaStatus';
 import SessionList from './components/chat/SessionList';
 import History from './pages/History';
 import { SessionManager } from './services/sessionManager';
@@ -22,7 +21,6 @@ const AppContent = () => {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [currentSession, setCurrentSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [showStatus, setShowStatus] = useState(false);
   const [searchParams] = useSearchParams();
 
   /**
@@ -131,7 +129,6 @@ const AppContent = () => {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
             </div>
-            <OllamaStatus isVisible={showStatus} />
           </div>
         </div>
       </nav>
@@ -147,7 +144,6 @@ const AppContent = () => {
                 sessionManager={sessionManager}
                 currentSession={currentSession}
                 onNewSession={handleNewSession}
-                onToggleStatus={() => setShowStatus(!showStatus)}
               />
               <SessionList
                 sessions={sessions}
