@@ -1,0 +1,46 @@
+{
+  "name": "memory-system",
+  "version": "1.0.0",
+  "description": "A Retrieval Augmented Generation (RAG) memory system for enhancing prompts with contextual information",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "lint": "eslint src/**/*.ts",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "prepare": "npm run build"
+  },
+  "keywords": [
+    "rag",
+    "memory",
+    "ai",
+    "embeddings",
+    "vector-search",
+    "chromadb",
+    "ollama"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@langchain/core": "^0.1.48",
+    "@langchain/community": "^0.0.34",
+    "chromadb": "^1.8.1",
+    "dotenv": "^16.3.1",
+    "langchain": "^0.1.21",
+    "uuid": "^9.0.1",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.5",
+    "@types/node": "^20.8.2",
+    "@types/uuid": "^9.0.5",
+    "@typescript-eslint/eslint-plugin": "^6.7.4",
+    "@typescript-eslint/parser": "^6.7.4",
+    "eslint": "^8.50.0",
+    "jest": "^29.7.0",
+    "prettier": "^3.0.3",
+    "ts-jest": "^29.1.1",
+    "typescript": "^5.2.2"
+  }
+}
